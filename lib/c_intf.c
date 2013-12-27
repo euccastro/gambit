@@ -5127,18 +5127,21 @@ int arg_num;)
 ___EXP_FUNC(___SCMOBJ,___POINTER_to_SCMOBJ)
    ___P((___processor_state ___ps,
          void *x,
+         ___SIZE_T size,
          ___SCMOBJ tags,
          ___SCMOBJ (*release_fn) ___P((void *ptr),()),
          ___SCMOBJ *obj,
          int arg_num),
         (___ps,
          x,
+         size,
          tags,
          release_fn,
          obj,
          arg_num)
 ___processor_state ___ps;
 void *x;
+___SIZE_T size;
 ___SCMOBJ tags;
 ___SCMOBJ (*release_fn) ___P((void *ptr),());
 ___SCMOBJ *obj;
@@ -5148,7 +5151,7 @@ int arg_num;)
     *obj = ___FAL; /* #f counts as NULL */
   else
     {
-      ___SCMOBJ r = ___alloc_scmobj (___ps, ___sFOREIGN, ___FOREIGN_SIZE<<___LWS);
+      ___SCMOBJ r = ___alloc_scmobj (___ps, ___sFOREIGN, size<<___LWS);
       if (___FIXNUMP(r))
         {
           *obj = ___FAL;
@@ -5157,6 +5160,8 @@ int arg_num;)
       ___FIELD(r,___FOREIGN_TAGS) = tags;
       ___FIELD(r,___FOREIGN_RELEASE_FN) = ___CAST(___SCMOBJ,release_fn);
       ___FIELD(r,___FOREIGN_PTR) = ___CAST(___SCMOBJ,x);
+      if (size > ___FOREIGN_DEP)
+          ___FIELD(r,___FOREIGN_DEP) = ___NUL;
       *obj = r;
     }
   return ___FIX(___NO_ERR);
@@ -5190,7 +5195,7 @@ int arg_num;)
       *obj = ___FAL;
       return ___FIX(___CTOS_NONNULLPOINTER_ERR+arg_num);
     }
-  return ___POINTER_to_SCMOBJ (___ps, x, tags, release_fn, obj, arg_num);
+  return ___POINTER_to_SCMOBJ (___ps, x, ___FOREIGN_SIZE, tags, release_fn, obj, arg_num);
 }
 
 
@@ -5277,7 +5282,7 @@ int arg_num;)
       *obj = ___FAL;
       e = ___FIX(___CTOS_STRUCT_ERR+arg_num);
     }
-  else if ((e = ___POINTER_to_SCMOBJ (___ps, x, tags, release_fn, obj, arg_num))
+  else if ((e = ___POINTER_to_SCMOBJ (___ps, x, ___FOREIGN_SIZE, tags, release_fn, obj, arg_num))
            != ___FIX(___NO_ERR))
     release_fn (x);
   return e;
@@ -5312,7 +5317,7 @@ int arg_num;)
       *obj = ___FAL;
       e = ___FIX(___CTOS_UNION_ERR+arg_num);
     }
-  else if ((e = ___POINTER_to_SCMOBJ (___ps, x, tags, release_fn, obj, arg_num))
+  else if ((e = ___POINTER_to_SCMOBJ (___ps, x, ___FOREIGN_SIZE, tags, release_fn, obj, arg_num))
            != ___FIX(___NO_ERR))
     release_fn (x);
   return e;
@@ -5347,7 +5352,7 @@ int arg_num;)
       *obj = ___FAL;
       e = ___FIX(___CTOS_TYPE_ERR+arg_num);
     }
-  else if ((e = ___POINTER_to_SCMOBJ (___ps, x, tags, release_fn, obj, arg_num))
+  else if ((e = ___POINTER_to_SCMOBJ (___ps, x, ___FOREIGN_SIZE, tags, release_fn, obj, arg_num))
            != ___FIX(___NO_ERR))
     release_fn (x);
   return e;

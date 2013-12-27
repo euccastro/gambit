@@ -6335,10 +6335,12 @@ void *___x;) \
 #define ___STOC4(f,s,c,t,i)___err=___EXT(f)(___PSP s,c,t,i)
 #define ___CTOS3(f,c,s,i)___err=___EXT(f)(___ps,c,s,i)
 #define ___CTOS5(f,c,t,r,s,i)___err=___EXT(f)(___ps,c,t,r,s,i)
+#define ___CTOS6(f,c,z,t,r,s,i)___err=___EXT(f)(___ps,c,z,t,r,s,i)
 #define ___IF_STOC3(f,s,c,i)if ((___STOC3(f,s,c,i))==___FIX(___NO_ERR))
 #define ___IF_STOC4(f,s,c,t,i)if ((___STOC4(f,s,c,t,i))==___FIX(___NO_ERR))
 #define ___IF_CTOS3(f,c,s,i)if ((___CTOS3(f,c,s,i))==___FIX(___NO_ERR))
 #define ___IF_CTOS5(f,c,t,r,s,i)if ((___CTOS5(f,c,t,r,s,i))==___FIX(___NO_ERR))
+#define ___IF_CTOS6(f,c,z,t,r,s,i)if ((___CTOS6(f,c,z,t,r,s,i))==___FIX(___NO_ERR))
 
 #define ___BEGIN_SFUN_BODY
 #define ___END_SFUN_BODY
@@ -6432,6 +6434,24 @@ void *___x;) \
 #define ___END_SFUN_SCMOBJ_TO_TYPE(n,s,c,t)
 #define ___BEGIN_SFUN_SCMOBJ_TO_POINTER(s,c,t)___STOC4(___SCMOBJ_to_POINTER,s,&c,t,___RETURN_POS);
 #define ___END_SFUN_SCMOBJ_TO_POINTER(s,c,t)
+/*
+ * There is no built-in foreign type constructor for these, i.e., you can't
+ * say something like
+ *
+ *     (c-define-type dependent-mytype (dependent-pointer "mytype"))
+ *
+ * Instead, you use
+ *
+ *     (c-define-type dependent-mytype
+ *       "mytype"
+ *       "DEPPOINTER_TO_SCMOBJ"
+ *       "SCMOBJ_TO_DEPPOINTER"
+ *       #f)
+ *
+ * That is why these only take two parameters.
+ */
+#define ___BEGIN_SFUN_SCMOBJ_TO_DEPPOINTER(s,c)___STOC4(___SCMOBJ_to_POINTER,s,&c,(___FIELD(s,___FOREIGN_TAGS)),___RETURN_POS);
+#define ___END_SFUN_SCMOBJ_TO_DEPPOINTER(s,c)
 #define ___BEGIN_SFUN_SCMOBJ_TO_NONNULLPOINTER(s,c,t)___STOC4(___SCMOBJ_to_NONNULLPOINTER,s,&c,t,___RETURN_POS);
 #define ___END_SFUN_SCMOBJ_TO_NONNULLPOINTER(s,c,t)
 #define ___BEGIN_SFUN_SCMOBJ_TO_FUNCTION(s,cnv,c)___STOC4(___SCMOBJ_to_FUNCTION,s,___CAST(void*,cnv),&c,___RETURN_POS);
@@ -6547,8 +6567,26 @@ void *___x;) \
 #define ___END_SFUN_UNION_TO_SCMOBJ(n,c,t,r,s,i)___EXT(___release_scmobj)(s);}
 #define ___BEGIN_SFUN_TYPE_TO_SCMOBJ(n,c,t,r,s,i)___IF_CTOS5(___TYPE_to_SCMOBJ,(void*)c,t,r,&s,i){
 #define ___END_SFUN_TYPE_TO_SCMOBJ(n,c,t,r,s,i)___EXT(___release_scmobj)(s);}
-#define ___BEGIN_SFUN_POINTER_TO_SCMOBJ(c,t,r,s,i)___IF_CTOS5(___POINTER_to_SCMOBJ,(void*)c,t,r,&s,i){
+#define ___BEGIN_SFUN_POINTER_TO_SCMOBJ(c,t,r,s,i)___IF_CTOS6(___POINTER_to_SCMOBJ,(void*)c,___FOREIGN_SIZE,t,r,&s,i){
 #define ___END_SFUN_POINTER_TO_SCMOBJ(c,t,r,s,i)___EXT(___release_scmobj)(s);}
+/*
+ * There is no built-in foreign type constructor for these, i.e., you can't
+ * say something like
+ *
+ *     (c-define-type dependent-mytype (dependent-pointer "mytype"))
+ *
+ * Instead, you use
+ *
+ *     (c-define-type dependent-mytype
+ *       "mytype"
+ *       "DEPPOINTER_TO_SCMOBJ"
+ *       "SCMOBJ_TO_DEPPOINTER"
+ *       #f)
+ *
+ * That is why these only take three parameters.
+ */
+#define ___BEGIN_SFUN_DEPPOINTER_TO_SCMOBJ(c,s,i)___IF_CTOS6(___DEPPOINTER_to_SCMOBJ,(void*)c,(___FOREIGN_SIZE+1),___FAL,___release_pointer,&s,i){
+#define ___END_SFUN_DEPPOINTER_TO_SCMOBJ(c,s,i)___EXT(___release_scmobj)(s);}
 #define ___BEGIN_SFUN_NONNULLPOINTER_TO_SCMOBJ(c,t,r,s,i)___IF_CTOS5(___NONNULLPOINTER_to_SCMOBJ,(void*)c,t,r,&s,i){
 #define ___END_SFUN_NONNULLPOINTER_TO_SCMOBJ(c,t,r,s,i)___EXT(___release_scmobj)(s);}
 #define ___BEGIN_SFUN_FUNCTION_TO_SCMOBJ(c,s,i)___IF_CTOS3(___FUNCTION_to_SCMOBJ,___CAST(void*,c),&s,i){
@@ -6724,6 +6762,24 @@ void *___x;) \
 #define ___END_CFUN_SCMOBJ_TO_TYPE(n,s,c,t,i)}
 #define ___BEGIN_CFUN_SCMOBJ_TO_POINTER(s,c,t,i)___IF_STOC4(___SCMOBJ_to_POINTER,s,(void**)&c,t,i){
 #define ___END_CFUN_SCMOBJ_TO_POINTER(s,c,t,i)}
+/*
+ * There is no built-in foreign type constructor for these, i.e., you can't
+ * say something like
+ *
+ *     (c-define-type dependent-mytype (dependent-pointer "mytype"))
+ *
+ * Instead, you use
+ *
+ *     (c-define-type dependent-mytype
+ *       "mytype"
+ *       "DEPPOINTER_TO_SCMOBJ"
+ *       "SCMOBJ_TO_DEPPOINTER"
+ *       #f)
+ *
+ * That is why these only take three parameters.
+ */
+#define ___BEGIN_CFUN_SCMOBJ_TO_DEPPOINTER(s,c,i)___IF_STOC4(___SCMOBJ_to_POINTER,s,(void**)&c,(___FIELD(s,___FOREIGN_TAGS)),i){
+#define ___END_CFUN_SCMOBJ_TO_DEPPOINTER(s,c,i)}
 #define ___BEGIN_CFUN_SCMOBJ_TO_NONNULLPOINTER(s,c,t,i)___IF_STOC4(___SCMOBJ_to_NONNULLPOINTER,s,(void**)&c,t,i){
 #define ___END_CFUN_SCMOBJ_TO_NONNULLPOINTER(s,c,t,i)}
 #define ___BEGIN_CFUN_SCMOBJ_TO_FUNCTION(s,cnv,c,i)___IF_STOC4(___SCMOBJ_to_FUNCTION,s,(void*)cnv,(void**)&c,i){
@@ -6843,8 +6899,26 @@ void *___x;) \
 #define ___END_CFUN_UNION_TO_SCMOBJ(n,c,t,r,s)___EXT(___release_scmobj)(s);}
 #define ___BEGIN_CFUN_TYPE_TO_SCMOBJ(n,c,t,r,s)___IF_CTOS5(___TYPE_to_SCMOBJ,(void*)c,t,r,&s,___RETURN_POS){
 #define ___END_CFUN_TYPE_TO_SCMOBJ(n,c,t,r,s)___EXT(___release_scmobj)(s);}
-#define ___BEGIN_CFUN_POINTER_TO_SCMOBJ(c,t,r,s)___IF_CTOS5(___POINTER_to_SCMOBJ,(void*)c,t,r,&s,___RETURN_POS){
+#define ___BEGIN_CFUN_POINTER_TO_SCMOBJ(c,t,r,s)___IF_CTOS6(___POINTER_to_SCMOBJ,(void*)c,___FOREIGN_SIZE,t,r,&s,___RETURN_POS){
 #define ___END_CFUN_POINTER_TO_SCMOBJ(c,t,r,s)___EXT(___release_scmobj)(s);}
+/*
+ * There is no built-in foreign type constructor for these, i.e., you can't
+ * say something like
+ *
+ *     (c-define-type dependent-mytype (dependent-pointer "mytype"))
+ *
+ * Instead, you use
+ *
+ *     (c-define-type dependent-mytype
+ *       "mytype"
+ *       "DEPPOINTER_TO_SCMOBJ"
+ *       "SCMOBJ_TO_DEPPOINTER"
+ *       #f)
+ *
+ * That is why these only take two parameters.
+ */
+#define ___BEGIN_CFUN_DEPPOINTER_TO_SCMOBJ(c,s)___IF_CTOS6(___POINTER_to_SCMOBJ,(void*)c,(___FOREIGN_SIZE+1),___FAL,___release_pointer,&s,___RETURN_POS){
+#define ___END_CFUN_DEPPOINTER_TO_SCMOBJ(c,s)___EXT(___release_scmobj)(s);}
 #define ___BEGIN_CFUN_NONNULLPOINTER_TO_SCMOBJ(c,t,r,s)___IF_CTOS5(___NONNULLPOINTER_to_SCMOBJ,(void*)c,t,r,&s,___RETURN_POS){
 #define ___END_CFUN_NONNULLPOINTER_TO_SCMOBJ(c,t,r,s)___EXT(___release_scmobj)(s);}
 #define ___BEGIN_CFUN_FUNCTION_TO_SCMOBJ(c,s)___IF_CTOS3(___FUNCTION_to_SCMOBJ,___CAST(void*,c),&s,___RETURN_POS){
@@ -8560,6 +8634,7 @@ typedef struct ___global_state_struct
     ___SCMOBJ (*___POINTER_to_SCMOBJ)
        ___P((___processor_state ___ps,
              void *x,
+             ___SIZE_T size,
              ___SCMOBJ tags,
              ___SCMOBJ (*release_fn) ___P((void *ptr),()),
              ___SCMOBJ *obj,
@@ -9673,6 +9748,7 @@ ___IMP_FUNC(___SCMOBJ,___TYPE_to_SCMOBJ)
 ___IMP_FUNC(___SCMOBJ,___POINTER_to_SCMOBJ)
    ___P((___processor_state ___ps,
          void *x,
+         ___SIZE_T size,
          ___SCMOBJ tags,
          ___SCMOBJ (*release_fn) ___P((void *ptr),()),
          ___SCMOBJ *obj,
